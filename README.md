@@ -42,8 +42,7 @@ $ danbooru-utility \
 --required_tags "archer,toosaka_rin,hug" \
 --max_examples 3 \
 --img_size 256 \
---save_dir face-save \
---faces True
+--faces
 
 Processed 3 files. Added 1 images. It took 12.48 sec
 ```
@@ -63,7 +62,8 @@ $ danbooru-utility \
 --required_tags "archer,toosaka_rin,hug" \
 --max_examples 3 \
 --img_size 256 \
---faces True
+--faces \
+--overwrite \
 --face_scale 1.8
 
 Processed 3 files. Added 1 images. It took 12.49 sec
@@ -73,7 +73,7 @@ Processed 3 files. Added 1 images. It took 12.49 sec
 
 A little tighter crop.
 
-If you have already processed some images this utility will check and not reproduce them, unless you set the `overwrite` parameter. You can also specify a `link_dir` to symlink to. So you can, for instance, resize a large number of images, and then create datasets for specific tags quickly.
+If you have already processed some images this utility will check and not reproduce them, unless you set the `overwrite` parameter. So if you change image generation parameters you should use this flag. You can also specify a `link_dir` to symlink to. So you can, for instance, resize a large number of images, and then create datasets for specific tags quickly.
 
 ## Config
 
@@ -81,6 +81,8 @@ For details on parameters check help.
 
 ```sh
 $ danbooru-utility -h
+```
+```
 usage: danbooru-utility [-h] [-d DIRECTORY] [--metadata_dir METADATA_DIR]
                         [--save_dir SAVE_DIR] [--link_dir LINK_DIR]
                         [-r REQUIRED_TAGS] [-b BANNED_TAGS] [-a ATLEAST_TAGS]

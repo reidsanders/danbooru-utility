@@ -52,13 +52,13 @@ def get_args(arg_input):
         '--directory',
         type=str,
         default='danbooru2018',
-        help='Danbooru directory',
+        help='Danbooru dataset directory.',
     )
     parser.add_argument(
         '--metadata_dir',
         type=str,
         default='metadata',
-        help='Metadata path below base directory. Will load all json files here',
+        help='Metadata path below base directory. Will load all json files here.',
     )
     parser.add_argument(
         '--save_dir',
@@ -99,13 +99,13 @@ def get_args(arg_input):
         type=lambda s: {str(item) for item in s.split(',')},
         default='s,q,e',
         help='Only include images with these ratings.\
-        "s,q,e" are the possible entries, and represent "safe,questionable,explicit"',
+        "s,q,e" are the possible entries, and represent "safe,questionable,explicit".',
     )
     parser.add_argument(
         '--score_range',
         type=lambda s: [int(item) for item in s.split(',')],
         default='-200,200',
-        help='Only include images inside this score range',
+        help='Only include images inside this score range.',
     )
     parser.add_argument(
         '-n',
@@ -115,12 +115,20 @@ def get_args(arg_input):
         help='Minimum number of atleast_tags required.',
     )
     parser.add_argument(
+        '--overwrite',
+        type=str2bool,
+        nargs='?',
+        const=True,
+        default=False,
+        help='Overwrite images in save directory.'
+    )
+    parser.add_argument(
         '--preview',
         type=str2bool,
         nargs='?',
         const=True,
         default=False,
-        help='preview images'
+        help='Preview images.'
     )
     parser.add_argument(
         '--faces',
@@ -128,13 +136,13 @@ def get_args(arg_input):
         nargs='?',
         const=True,
         default=False,
-        help='detect faces and try to include them in top of image'
+        help='Detect faces and try to include them in top of image.'
     )
     parser.add_argument(
         '--face_scale',
         type=float,
         default=2.5,
-        help='height and width multiplier over size of face',
+        help='Height and width multiplier over size of face.',
     )
     parser.add_argument(
         '--max_examples',
@@ -284,13 +292,14 @@ def resize_and_save_images_mp(data_gen, args):
                         task_queue.put(
                             (
                                 load_path, write_file, args.save_dir,
-                                args.link_dir, args.img_size, args.face_scale
+                                args.link_dir, args.img_size, args.face_scale,
+                                args.overwrite,
                             )
                         )
                     else:
                         num_processed += resize_and_save_image(
                             load_path, write_file, args.save_dir, args.link_dir,
-                            args.img_size
+                            args.img_size, args.overwrite
                         )
                     i += 1
                     if i % 100 == 0:
@@ -306,13 +315,14 @@ def resize_and_save_images_mp(data_gen, args):
                 task_queue.put(
                     (
                         load_path, write_file, args.save_dir, args.link_dir,
-                        args.img_size, args.face_scale
+                        args.img_size, args.face_scale,
+                        args.overwrite,
                     )
                 )
             else:
                 num_processed += resize_and_save_image(
                     load_path, write_file, args.save_dir, args.link_dir,
-                    args.img_size
+                    args.img_size, args.overwrite
                 )
             i += 1
             if i % 100 == 0:
@@ -333,18 +343,21 @@ def resize_and_save_images_mp(data_gen, args):
     )
 
 
-def resize_and_save_image(load_path, write_file, save_dir, link_dir, img_size):
+def resize_and_save_image(load_path, write_file, save_dir, link_dir, img_size, overwrite):
     """
     Resize image and save with white border if not square
 
     """
     write_path = os.path.join(save_dir, write_file)
     link_path = os.path.join(link_dir, write_file)
-    if not exists_or_link(write_path, link_path):
-        img = Image.open(load_path)
-        img = resizeimage.resize_contain(img, [img_size, img_size])
-        img.save(write_path, img.format)
-        img.close()
+    if not overwrite:
+        if exists_or_link(write_path, link_path):
+            return 1
+
+    img = Image.open(load_path)
+    img = resizeimage.resize_contain(img, [img_size, img_size])
+    img.save(write_path, img.format)
+    img.close()
     return 1
 
 
@@ -368,6 +381,7 @@ def detect_faces(
     link_dir,
     img_size,
     face_scale,
+    overwrite,
     cascade_file="./lbpcascade_animeface.xml"
 ):
     """
@@ -380,10 +394,11 @@ def detect_faces(
         face_write_file = f"face{i}_{write_file}"
         face_write_path = os.path.join(save_dir, face_write_file)
         face_link_path = os.path.join(link_dir, face_write_file)
-        if exists_or_link(face_write_path, face_link_path):
-            num_processed += 1
-        elif num_processed > 0:
-            return num_processed
+        if not overwrite:
+            if exists_or_link(face_write_path, face_link_path):
+                num_processed += 1
+            elif num_processed > 0:
+                return num_processed
     # If not sufficiently processed or linkable set up face recognition
     num_processed = 0
     if not os.path.isfile(cascade_file):

@@ -28,9 +28,9 @@ Processed 3 files. Added 3 images. It took 14.39 sec
 
 This will find three images with the required tags, and resize them to 256x256. Note this took a long time since the filtering is just done in a loop. Let's check what this produced in `out-images`:
 
-![Rin Archer Example](./img/rin_archer1.jpg)
-![Rin Archer Example](./img/rin_archer2.jpg)
-![Rin Archer Example](./img/rin_archer3.png)
+![Rin Archer example 1](./img/rin_archer1.jpg)
+![Rin Archer example 2](./img/rin_archer2.jpg)
+![Rin Archer example 3](./img/rin_archer3.png)
 
 Now let's run the same command but with face detection:
 
@@ -48,7 +48,7 @@ Processed 3 files. Added 1 images. It took 12.48 sec
 
 That produced:
 
-![Rin Archer Example](./img/rin_archer_face_default.jpg)
+![Rin Archer face example](./img/rin_archer_face_default.jpg)
 
 So it cropped with the face in the upper center of the image.
 
@@ -68,7 +68,7 @@ $ danbooru-utility \
 Processed 3 files. Added 1 images. It took 12.49 sec
 ```
 
-![Rin Archer Example](./img/rin_archer_face_scale.jpg)
+![Rin Archer face scale example](./img/rin_archer_face_scale.jpg)
 
 A little tighter crop.
 

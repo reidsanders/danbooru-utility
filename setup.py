@@ -5,14 +5,14 @@ with open("README.md", "r") as fh:
 
 setup(
     name = 'danbooru-utility',
-    version = '0.1.5',
+    version = '0.1.7',
     url = 'https://github.com/reidsanders/danbooru-utility.git',
     author = 'Reid Sanders',
     author_email = 'reid@reidsanders.net',
     description = 'Utility for working with danbooru2018 dataset',
     long_description= long_description,
+    long_description_content_type='text/markdown',
     packages = find_packages(),    
-    #scripts=['danbooru-utility'],
     py_modules=['danbooru_utility'],
     install_requires = [
         'numpy >= 1.15.4',

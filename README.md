@@ -21,8 +21,7 @@ $ danbooru-utility \
 --rating "s" \
 --required_tags "archer,toosaka_rin,hug" \
 --max_examples 3 \
---img_size 256 \
---faces False
+--img_size 256
 
 Processed 3 files. Added 3 images. It took 14.39 sec
 ```

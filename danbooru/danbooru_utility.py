@@ -382,12 +382,13 @@ def detect_faces(
     img_size,
     face_scale,
     overwrite,
-    cascade_file="./lbpcascade_animeface.xml"
+    cascade_file_name="lbpcascade_animeface.xml"
 ):
     """
     Detect faces in image, and crops to fit them in upper part of image
 
     """
+    cascade_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), cascade_file_name)
     num_processed = 0
     # Check if already processed. Checks for up to 10 faces
     for i in range(20):

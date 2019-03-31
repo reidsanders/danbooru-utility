@@ -72,7 +72,24 @@ Processed 3 files. Added 1 images. It took 12.49 sec
 
 A little tighter crop.
 
-If you have already processed some images this utility will check and not reproduce them, unless you set the `overwrite` parameter. So if you change image generation parameters you should use this flag. You can also specify a `link_dir` to symlink to. So you can, for instance, resize a large number of images, and then create datasets for specific tags quickly.
+If you have already processed some images this utility will check and not reproduce them, unless you use `--overwrite`. So if you change image generation parameters you should use this flag. You can also specify a `--link_dir` to symlink to. So you can, for instance, resize a large number of images, and then create datasets for specific tags quickly.
+
+So for GAN training I would use something like this to generate a training set:
+
+```sh
+$ danbooru-utility \
+--directory ~/datasets/danbooru-gwern/danbooru2018/ \
+--rating "s,q" \
+--banned_tags "photo,comic" \
+--max_examples 1000000000 \
+--img_size 256 \
+--faces
+
+Processed 100 files. It took 10.36 sec
+Processed 200 files. It took 20.06 sec
+Processed 300 files. It took 39.16 sec
+...
+```
 
 ## Config
 
@@ -183,11 +200,15 @@ Here's an example metadata entry in Danbooru2018:
 
 ```
 
+You can explore the metadata and find what tags are associated with each image using `--preview`.
+
 ## Improvements
 
 This could load the dataset into a relational database, allowing much more efficient and powerful querying.
 
 The face detection has room for improvement. It has rare false positives, and a fair number of false negatives.
+
+I'm happy to consider pull requests.
 
 ## Acknowledgements
 

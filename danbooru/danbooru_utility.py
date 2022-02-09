@@ -282,9 +282,13 @@ def resize_and_save_images_mp(data_gen, args):
             )
             # Extract and process zipfiles
             if example['file_ext'] == 'zip':
-                zip_ref = zipfile.ZipFile(load_path, 'r')
-                tmp_dir = tempfile.mkdtemp()
-                zip_ref.extractall(path=tmp_dir)
+                try:
+                    zip_ref = zipfile.ZipFile(load_path, 'r')
+                    tmp_dir = tempfile.mkdtemp()
+                    zip_ref.extractall(path=tmp_dir)
+                except:
+                    print("Failed to open zip file")
+                    continue
                 for name in zip_ref.namelist():
                     load_path = os.path.join(tmp_dir, name)
                     write_file = img_id + '_' + name
@@ -353,11 +357,19 @@ def resize_and_save_image(load_path, write_file, save_dir, link_dir, img_size, o
     if not overwrite:
         if exists_or_link(write_path, link_path):
             return 1
-
-    img = Image.open(load_path)
-    img = resizeimage.resize_contain(img, [img_size, img_size])
-    img.save(write_path, img.format)
-    img.close()
+    try:
+        img = Image.open(load_path)
+    except Exception as detail:
+        print("Failed to open image: {}".format(detail))
+        return 0
+    try:
+        if img_size >= 0:
+            img = resizeimage.resize_contain(img, [img_size, img_size])
+        img.save(write_path, img.format)
+        img.close()
+    except Exception as detail:
+        print("Failed in resize and save img: {}".format(detail))
+        return 0
     return 1
 
 

@@ -471,13 +471,16 @@ def detect_faces(
         crop_img = image[cropy:cropy + croph, cropx:cropx + cropw]
         if crop_img.shape[0] < img_size or crop_img.shape[1] < img_size:
             continue
+        img = Image.fromarray(crop_img)
+        if img.mode in ("RGBA", "P"): 
+            img = img.convert("RGB")
+
         face_write_file = f"face{num_processed}_{write_file}"
         face_write_path = os.path.join(save_dir, face_write_file)
         face_link_path = os.path.join(link_dir, face_write_file)
-        img = Image.fromarray(crop_img)
 
         try:
-            img = img.convert("RGB")
+            print(f"Image mode: {img.mode}")
             img = resizeimage.resize_contain(img, [img_size, img_size])
             img.save(face_write_path, img.format)
             num_processed += 1

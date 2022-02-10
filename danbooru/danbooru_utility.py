@@ -314,10 +314,8 @@ def resize_and_save_images_mp(data_gen, args):
                         )
                         num_processed += num_processed_inside
                         if num_processed_inside > 0:
-                            metadata += [{
-                                "data": example,
-                                "filename": write_file,
-                            }]
+                            example["filename"] = write_file
+                            metadata.append(example)
                     i += 1
                     if i % 100 == 0:
                         print(
@@ -343,10 +341,8 @@ def resize_and_save_images_mp(data_gen, args):
                 )
                 num_processed += num_processed_inside
                 if num_processed_inside > 0:
-                    metadata += [{
-                        "data": example,
-                        "filename": write_file,
-                    }]
+                    example["filename"] = write_file
+                    metadata.append(example)
             i += 1
             if i % 100 == 0:
                 print(
@@ -362,6 +358,17 @@ def resize_and_save_images_mp(data_gen, args):
     pool.join()
     num_processed += sum(num_processed_return)
     metadata += list(chain(metadata_return))
+    jsonfile = os.path.join(args.save_dir, "index.json")
+    with open(jsonfile, "w+") as f:
+        print(f"Saving JSON metadata file: {jsonfile}")
+        jsondata = json.dumps(
+            {
+                "data": metadata,
+                # Add other global metadata here
+            }
+        )
+        f.write(jsondata)
+    
     print(
             f'\nProcessed {i} files. Added {num_processed} images. It took {time.time() - start_time:.2f} sec'
     )
@@ -383,10 +390,10 @@ def resize_and_save_image(load_path, write_file, save_dir, link_dir, img_size, o
         print("Failed to open image: {}".format(detail))
         return 0
     try:
-        if img.mode in ("RGBA", "P"): 
-            img = img.convert("RGB")
         if img_size >= 0:
             img = resizeimage.resize_contain(img, [img_size, img_size])
+        if img.mode in ("RGBA", "P"): 
+            img = img.convert("RGB")
         img.save(write_path, img.format)
         img.close()
 
@@ -427,7 +434,7 @@ def detect_faces(
     cascade_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), cascade_file_name)
     num_processed = 0
     metadata = []
-    # Check if already processed. Checks for up to 10 faces
+    # Check if already processed. Checks for up to 20 faces
     for i in range(20):
         face_write_file = f"face{i}_{write_file}"
         face_write_path = os.path.join(save_dir, face_write_file)
@@ -472,23 +479,18 @@ def detect_faces(
         if crop_img.shape[0] < img_size or crop_img.shape[1] < img_size:
             continue
         img = Image.fromarray(crop_img)
-        if img.mode in ("RGBA", "P"): 
-            img = img.convert("RGB")
-
         face_write_file = f"face{num_processed}_{write_file}"
         face_write_path = os.path.join(save_dir, face_write_file)
         face_link_path = os.path.join(link_dir, face_write_file)
 
         try:
-            print(f"Image mode: {img.mode}")
             img = resizeimage.resize_contain(img, [img_size, img_size])
+            if img.mode in ("RGBA", "P"): 
+                img = img.convert("RGB")
             img.save(face_write_path, img.format)
             num_processed += 1
-            metadata += [{
-                "data": info,
-                "filename": face_write_file,
-            }]
-            #TODO save metadata / labels
+            info["filename"] = face_write_file
+            metadata.append(info)
         except Exception as detail:
             print(f"Image Error: {detail}")
     return num_processed, metadata

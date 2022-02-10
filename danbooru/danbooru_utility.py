@@ -15,6 +15,7 @@ import cv2
 import numpy as np
 import tempfile
 import multiprocessing as mp
+from itertools import chain
 
 NCORE = mp.cpu_count()
 
@@ -236,17 +237,21 @@ def find_metadata_files(directory):
     return files
 
 
-def detect_faces_tasker(task_queue, num_processed_return, iolock):
+def detect_faces_tasker(task_queue, num_processed_return, metadata_return, iolock):
     """
     loads image data from task_queue and runs face detection
     """
     num_processed = 0
+    metadata = []
     while True:
         args = task_queue.get()
         if args is None:
             break
-        num_processed += detect_faces(*args)
+        num_processed_inside, metadata_inside = detect_faces(*args)
+        num_processed += num_processed_inside
+        metadata += metadata_inside
     num_processed_return.append(num_processed)
+    metadata_return += metadata
 
 
 def resize_and_save_images_mp(data_gen, args):
@@ -261,12 +266,14 @@ def resize_and_save_images_mp(data_gen, args):
     manager = mp.Manager() # Manager to allow shared variables
     task_queue = manager.Queue(maxsize=NCORE) # queue of images for face detection processes
     num_processed_return = manager.list()
+    metadata_return = manager.list()
     iolock = mp.Lock()
     pool = mp.Pool(
         NCORE,
         initializer=detect_faces_tasker,
-        initargs=(task_queue, num_processed_return, iolock)
+        initargs=(task_queue, num_processed_return, metadata_return, iolock)
     )
+    metadata = []
     for example in data_gen:
         if i >= args.max_examples:
             break
@@ -297,14 +304,20 @@ def resize_and_save_images_mp(data_gen, args):
                             (
                                 load_path, write_file, args.save_dir,
                                 args.link_dir, args.img_size, args.face_scale,
-                                args.overwrite,
+                                args.overwrite, example,
                             )
                         )
                     else:
-                        num_processed += resize_and_save_image(
+                        num_processed_inside = resize_and_save_image(
                             load_path, write_file, args.save_dir, args.link_dir,
                             args.img_size, args.overwrite
                         )
+                        num_processed += num_processed_inside
+                        if num_processed_inside > 0:
+                            metadata += [{
+                                "data": example,
+                                "filename": write_file,
+                            }]
                     i += 1
                     if i % 100 == 0:
                         print(
@@ -320,14 +333,20 @@ def resize_and_save_images_mp(data_gen, args):
                     (
                         load_path, write_file, args.save_dir, args.link_dir,
                         args.img_size, args.face_scale,
-                        args.overwrite,
+                        args.overwrite, example,
                     )
                 )
             else:
-                num_processed += resize_and_save_image(
+                num_processed_inside = resize_and_save_image(
                     load_path, write_file, args.save_dir, args.link_dir,
                     args.img_size, args.overwrite
                 )
+                num_processed += num_processed_inside
+                if num_processed_inside > 0:
+                    metadata += [{
+                        "data": example,
+                        "filename": write_file,
+                    }]
             i += 1
             if i % 100 == 0:
                 print(
@@ -342,6 +361,7 @@ def resize_and_save_images_mp(data_gen, args):
     pool.close()
     pool.join()
     num_processed += sum(num_processed_return)
+    metadata += list(chain(metadata_return))
     print(
             f'\nProcessed {i} files. Added {num_processed} images. It took {time.time() - start_time:.2f} sec'
     )
@@ -367,6 +387,7 @@ def resize_and_save_image(load_path, write_file, save_dir, link_dir, img_size, o
             img = resizeimage.resize_contain(img, [img_size, img_size])
         img.save(write_path, img.format)
         img.close()
+
     except Exception as detail:
         print("Failed in resize and save img: {}".format(detail))
         return 0
@@ -394,6 +415,7 @@ def detect_faces(
     img_size,
     face_scale,
     overwrite,
+    info,
     cascade_file_name="lbpcascade_animeface.xml"
 ):
     """
@@ -432,7 +454,7 @@ def detect_faces(
         minNeighbors=5,
         minSize=(48, 48)
     )
-
+    metadata = []
     for (x, y, w, h) in faces:
         cropw = int(w * face_scale)
         croph = int(h * face_scale)
@@ -456,9 +478,14 @@ def detect_faces(
             img = resizeimage.resize_contain(img, [img_size, img_size])
             img.save(face_write_path, img.format)
             num_processed += 1
+            metadata += [{
+                "data": info,
+                "filename": face_write_file,
+            }]
+            #TODO save metadata / labels
         except Exception as detail:
             print(f"Image Size Error: {detail}")
-    return num_processed
+    return num_processed, metadata
 
 
 def preview(data_gen, args):

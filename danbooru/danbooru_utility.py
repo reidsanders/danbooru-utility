@@ -383,6 +383,8 @@ def resize_and_save_image(load_path, write_file, save_dir, link_dir, img_size, o
         print("Failed to open image: {}".format(detail))
         return 0
     try:
+        if img.mode in ("RGBA", "P"): 
+            img = img.convert("RGB")
         if img_size >= 0:
             img = resizeimage.resize_contain(img, [img_size, img_size])
         img.save(write_path, img.format)
@@ -424,6 +426,7 @@ def detect_faces(
     """
     cascade_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), cascade_file_name)
     num_processed = 0
+    metadata = []
     # Check if already processed. Checks for up to 10 faces
     for i in range(20):
         face_write_file = f"face{i}_{write_file}"
@@ -433,7 +436,7 @@ def detect_faces(
             if exists_or_link(face_write_path, face_link_path):
                 num_processed += 1
             elif num_processed > 0:
-                return num_processed
+                return num_processed, metadata
     # If not sufficiently processed or linkable set up face recognition
     num_processed = 0
     if not os.path.isfile(cascade_file):
@@ -444,7 +447,7 @@ def detect_faces(
         image = np.asarray(Image.open(load_path).convert('RGB'))
     except Exception as detail:
         print(f"Image Error: {detail}")
-        return 0
+        return 0, []
     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     gray = cv2.equalizeHist(gray)
 
@@ -454,7 +457,6 @@ def detect_faces(
         minNeighbors=5,
         minSize=(48, 48)
     )
-    metadata = []
     for (x, y, w, h) in faces:
         cropw = int(w * face_scale)
         croph = int(h * face_scale)
@@ -475,6 +477,7 @@ def detect_faces(
         img = Image.fromarray(crop_img)
 
         try:
+            img = img.convert("RGB")
             img = resizeimage.resize_contain(img, [img_size, img_size])
             img.save(face_write_path, img.format)
             num_processed += 1
@@ -484,7 +487,7 @@ def detect_faces(
             }]
             #TODO save metadata / labels
         except Exception as detail:
-            print(f"Image Size Error: {detail}")
+            print(f"Image Error: {detail}")
     return num_processed, metadata
 
 

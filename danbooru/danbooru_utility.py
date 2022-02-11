@@ -201,7 +201,6 @@ def load_data(args):
     """
     loads and yields image data from metadata files
     """
-    data = []
     metadata_paths = find_metadata_files(
         os.path.join(args.directory, args.metadata_dir)
     )

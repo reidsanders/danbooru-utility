@@ -463,6 +463,8 @@ def detect_faces(
         if not overwrite:
             if exists_or_link(face_write_path, face_link_path):
                 num_processed += 1
+                info["filename"] = face_write_file
+                metadata.append(info)
             elif num_processed > 0:
                 return num_processed, metadata
     # If not sufficiently processed or linkable set up face recognition

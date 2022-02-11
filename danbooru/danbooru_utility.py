@@ -16,6 +16,7 @@ import numpy as np
 import tempfile
 import multiprocessing as mp
 from itertools import chain
+from copy import deepcopy
 
 NCORE = mp.cpu_count()
 
@@ -322,8 +323,9 @@ def resize_and_save_images_mp(data_gen, args):
                         )
                         num_processed += num_processed_inside
                         if num_processed_inside > 0:
-                            example["filename"] = write_file
-                            metadata.append(example)
+                            updatedinfo = deepcopy(example)
+                            updatedinfo["filename"] = write_file
+                            metadata.append(updatedinfo)
                     i += 1
                     if i % 100 == 0:
                         print(
@@ -358,8 +360,9 @@ def resize_and_save_images_mp(data_gen, args):
                 )
                 num_processed += num_processed_inside
                 if num_processed_inside > 0:
-                    example["filename"] = write_file
-                    metadata.append(example)
+                    updatedinfo = deepcopy(example)
+                    updatedinfo["filename"] = write_file
+                    metadata.append(updatedinfo)
             i += 1
             if i % 100 == 0:
                 print(
@@ -463,8 +466,9 @@ def detect_faces(
         if not overwrite:
             if exists_or_link(face_write_path, face_link_path):
                 num_processed += 1
-                info["filename"] = face_write_file
-                metadata.append(info)
+                updatedinfo = deepcopy(info)
+                updatedinfo["filename"] = face_write_file
+                metadata.append(updatedinfo)
             elif num_processed > 0:
                 return num_processed, metadata
     # If not sufficiently processed or linkable set up face recognition
@@ -509,8 +513,9 @@ def detect_faces(
                 img = img.convert("RGB")
             img.save(face_write_path, img.format)
             num_processed += 1
-            info["filename"] = face_write_file
-            metadata.append(info)
+            updatedinfo = deepcopy(info)
+            updatedinfo["filename"] = face_write_file
+            metadata.append(updatedinfo)
         except Exception as detail:
             print(f"Image Error: {detail}")
     return num_processed, metadata

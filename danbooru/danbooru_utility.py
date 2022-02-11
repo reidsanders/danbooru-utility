@@ -105,7 +105,7 @@ def get_args(arg_input):
     parser.add_argument(
         '--score_range',
         type=lambda s: [int(item) for item in s.split(',')],
-        default='-200,200',
+        default='-999999999,999999999',
         help='Only include images inside this score range.',
     )
     parser.add_argument(

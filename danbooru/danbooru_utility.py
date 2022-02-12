@@ -556,11 +556,14 @@ def main(args=None):
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
 
-    data_gen = load_data(args)
-    resize_and_save_images_mp(data_gen, args)
     if args.preview:
         data_gen = load_data(args)
         preview(data_gen, args)
+        print(f"Finished previewing, exiting.")
+        return
+
+    data_gen = load_data(args)
+    resize_and_save_images_mp(data_gen, args)
 
 
 if __name__ == "__main__":

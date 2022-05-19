@@ -230,8 +230,15 @@ def find_metadata_files(directory):
     """
     finds metadata files from directory
     """
-    p = pathlib.Path(directory).glob("**/*")
+    # Try loading new metadata format >=2021
+    p = pathlib.Path(directory).glob("**/posts*.json")
     files = [x for x in p if x.is_file()]
+
+    if len(files) == 0:
+        # Else try loading old metadata format
+        p = pathlib.Path(directory).glob("**/*")
+        files = [x for x in p if x.is_file()]
+
     return files
 
 

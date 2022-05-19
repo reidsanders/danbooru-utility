@@ -121,3 +121,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# vim undo and swp files
+*.*.un~
+*.*.swp~
+
+# Output folder
+out-images/
+
+# vscode
+.vscode

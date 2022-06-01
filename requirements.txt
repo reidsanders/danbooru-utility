@@ -1,0 +1,4 @@
+numpy==1.15.4
+opencv_python==3.4.3.18
+python_resize_image==1.1.18
+Pillow==5.4.1

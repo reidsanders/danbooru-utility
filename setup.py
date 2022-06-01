@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="danbooru-utility",
-    version="0.1.20",
+    version="0.2.0",
     url="https://github.com/reidsanders/danbooru-utility.git",
     author="Reid Sanders",
     author_email="reid@reidsanders.net",

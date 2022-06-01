@@ -53,13 +53,13 @@ def get_args(arg_input):
         "-d",
         "--directory",
         type=str,
-        default="danbooru2018",
+        default="danbooru2021",
         help="Danbooru dataset directory.",
     )
     parser.add_argument(
         "--metadata_dir",
         type=str,
-        default="metadata",
+        default="metadata/2021-old",
         help="Metadata path below base directory. Will load all json files here.",
     )
     parser.add_argument(
